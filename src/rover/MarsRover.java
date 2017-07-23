@@ -1,10 +1,13 @@
 package rover;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MarsRover {
     private static final List<String> VALID_COMMANDS = Arrays.asList("L", "R", "M");
+    private static Map<String, Commands> COMMANDS = new HashMap<>();
     private static final List<String> DIRECTIONS = Arrays.asList("N", "E", "S", "W");
 
     private static final int Y = 1;
@@ -16,33 +19,35 @@ public class MarsRover {
     public MarsRover(int startingX, int startingY, String direction) {
         this.position = new int[]{startingX, startingY};
         this.direction = direction;
+        COMMANDS.put("M", new MoveCommand());
+        COMMANDS.put("L", new TurnLeftCommand());
+        COMMANDS.put("R", new TurnRightCommand());
     }
 
     public String run(String input) {
         String[] commands = convertInputIntoCommands(input);
 
         for (String command : commands) {
-            if (command.equals("M")) {
-                move();
-            } else if (command.equals("R")) {
-                turnRight();
-            } else if (command.equals("L")) {
-                turnLeft();
-            }
+            COMMANDS.get(command).execute(this);
         }
 
         return asString();
     }
 
-    private void move() {
-        if (direction.equals("N")) {
-            position[Y] += +1;
-        } else if (direction.equals("S")) {
-            position[Y] += -1;
-        } else if (direction.equals("E")) {
-            position[X] += +1;
-        } else if (direction.equals("W")) {
-            position[X] += -1;
+    public void move() {
+        switch (direction) {
+            case "N":
+                position[Y] += +1;
+                break;
+            case "S":
+                position[Y] += -1;
+                break;
+            case "E":
+                position[X] += +1;
+                break;
+            case "W":
+                position[X] += -1;
+                break;
         }
     }
 
@@ -50,11 +55,11 @@ public class MarsRover {
         return position[X] + " " + position[Y] + " " + direction;
     }
 
-    private void turnLeft() {
+    public void turnLeft() {
         direction = DIRECTIONS.get((DIRECTIONS.indexOf(direction) + 3) % DIRECTIONS.size());
     }
 
-    private void turnRight() {
+    public void turnRight() {
         direction = DIRECTIONS.get((DIRECTIONS.indexOf(direction) + 1) % DIRECTIONS.size());
     }
 
