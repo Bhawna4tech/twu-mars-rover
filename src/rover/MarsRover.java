@@ -1,24 +1,39 @@
 package rover;
 
+import rover.directions.Direction;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static rover.directions.Direction.*;
+
 public class MarsRover {
-    private static final List<String> VALID_COMMANDS = Arrays.asList("L", "R", "M");
-    private static Map<String, Commands> COMMANDS = new HashMap<>();
-    private static final List<String> DIRECTIONS = Arrays.asList("N", "E", "S", "W");
+    private static final Map<String, Commands> COMMANDS = new HashMap<>();
+    private static final Map<String, Direction> DIRECTIONS = new HashMap<>();
 
     private static final int Y = 1;
     private static final int X = 0;
 
-    private String direction;
-    private int[] position;
+    private Direction direction;
+    private Coordinate coordinate;
 
     public MarsRover(int startingX, int startingY, String direction) {
-        this.position = new int[]{startingX, startingY};
-        this.direction = direction;
+        initializeCommands();
+        initializeDirections();
+        this.coordinate = new Coordinate(startingX,startingY);
+        this.direction = DIRECTIONS.get(direction);
+    }
+
+    private void initializeDirections() {
+        DIRECTIONS.put("E", E);
+        DIRECTIONS.put("W", W);
+        DIRECTIONS.put("N", N);
+        DIRECTIONS.put("S", S);
+    }
+
+    private void initializeCommands() {
         COMMANDS.put("M", new MoveCommand());
         COMMANDS.put("L", new TurnLeftCommand());
         COMMANDS.put("R", new TurnRightCommand());
@@ -26,41 +41,26 @@ public class MarsRover {
 
     public String run(String input) {
         String[] commands = convertInputIntoCommands(input);
-
         for (String command : commands) {
             COMMANDS.get(command).execute(this);
         }
-
         return asString();
     }
 
     public void move() {
-        switch (direction) {
-            case "N":
-                position[Y] += +1;
-                break;
-            case "S":
-                position[Y] += -1;
-                break;
-            case "E":
-                position[X] += +1;
-                break;
-            case "W":
-                position[X] += -1;
-                break;
-        }
+        coordinate = direction.moveStep(coordinate);
     }
 
     private String asString() {
-        return position[X] + " " + position[Y] + " " + direction;
+        return this.coordinate.toString() + " " + direction;
     }
 
     public void turnLeft() {
-        direction = DIRECTIONS.get((DIRECTIONS.indexOf(direction) + 3) % DIRECTIONS.size());
+        direction = DIRECTIONS.get(direction.getLeftDirection());
     }
 
     public void turnRight() {
-        direction = DIRECTIONS.get((DIRECTIONS.indexOf(direction) + 1) % DIRECTIONS.size());
+        direction = DIRECTIONS.get(direction.getRightDirection());
     }
 
     private static String[] convertInputIntoCommands(String input) {
@@ -73,11 +73,9 @@ public class MarsRover {
 
     private static void validateCommands(String input, String[] commandArray) {
         for (String command : commandArray) {
-            if (!VALID_COMMANDS.contains(command)) {
+            if (!COMMANDS.containsKey(command)) {
                 throw new IllegalArgumentException("Invalid command sequence: " + input);
             }
         }
     }
-
-
 }
